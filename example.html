@@ -27,8 +27,8 @@
     <script type="text/javascript">
       $(function() {
         var RECAPTCHA_PUBLIC_KEY = '6Lerk_QSAAAAALZerbTOKIFJZz1wTNoKMvw1xOE9',
-            VOTING_ENDPOINT = 'http://127.0.0.1:9033';
-        var voting_token = null;
+            VOTING_ENDPOINT = '';
+        var voting_token = localStorage['voting_token'] || null;
 
         //-------------------------------------------------------------------
         // Get a voting token, perhaps performing a CAPTCHA if needed
@@ -57,11 +57,13 @@
                       .then(function(token) {
                         // Success w/ CAPTCHA
                         voting_token = token;
+                        saveVotingToken(token);
                         d.resolve(voting_token);
                       });
                   } else {
                     // Success
                     voting_token = response.token;
+                    saveVotingToken(voting_token);
                     d.resolve(response.token);
                   }
                 }
@@ -71,6 +73,9 @@
             d.resolve(voting_token);
           }
           return d.promise();
+        }
+        function saveVotingToken(tk) {
+          localStorage['voting_token'] = tk;
         }
 
         //-------------------------------------------------------------------

@@ -49,7 +49,7 @@ class VoteCounter(object):
 
     @app.route('/')
     def index(self, request):
-        return File(self.index_file)
+        return open(self.index_file, 'rb').read()
 
 
     @app.route('/results')

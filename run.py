@@ -30,6 +30,21 @@ def start(reactor):
 
     port = int(os.environ.get('PORT', 9003))
 
+    # Number of tokens per IP.  In other words, you can have this many people
+    # vote from the same IP for ever TOKEN_REFRESH_RATE seconds.
+    tokens_per_ip = int(os.environ.get('TOKENS_PER_IP', 4))
+
+    # This is the number of seconds after which a token for a particular IP
+    # can be used again.
+    token_refresh_rate = int(os.environ.get('TOKEN_REFRESH_RATE', 60))
+
+    # Number of votes that can be cast per voting token.
+    use_limit = len(options) / 2
+
+    # After a user gets a voting token, they have this many seconds to use it
+    # before it won't work anymore.
+    token_expiration = int(os.environ.get('TOKEN_EXPIRATION', 240))
+
     engine = create_engine(url, reactor=reactor, strategy=TWISTED_STRATEGY)
     store = SQLVoteStore(engine, options)
     yield store.upgradeSchema()
@@ -37,11 +52,10 @@ def start(reactor):
     captcha_verifier = RecaptchaVerifier(captcha_private)
 
     dispenser = TimedTokenDispenser(
-        available=4,
-        refresh=60,
-        # Set this to the total number of votes that can be cast.
-        use_limit=4,
-        expiration=240,
+        available=tokens_per_ip,
+        refresh=token_refresh_rate,
+        use_limit=use_limit,
+        expiration=token_expiration,
         store=MemoryStore(reactor),
     )
     app = VoteCounter(store, dispenser, captcha_verifier, 'example.html')

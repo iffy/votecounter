@@ -9,7 +9,7 @@ voting by machines.
 
 2. Sign up for reCAPTCHA here: https://www.google.com/recaptcha/admin
 
-3. Sign up at http://www.heroku.com.  It's free until you want it to not be free.
+3. Sign up for Heroku here: http://www.heroku.com.  It's free until you want it to not be free.
 
 4. Read through these instructions *except step 4* to get set up: https://devcenter.heroku.com/articles/quickstart
 
@@ -37,6 +37,18 @@ voting by machines.
 
     git push heroku master
 
-11. See it (this will be a 404, but you can go to `/results`)
+11. See it:
 
     heroku apps:open
+    # or if that fails get the url from here
+    heroku apps:info
+
+12. Change other parameters to your liking (see `run.py` for a description)
+
+    heroku config:set TOKENS_PER_IP=3 TOKEN_REFRESH_RATE=10 TOKEN_EXPIRATION=360
+
+
+## The JavaScript ##
+
+See `example.html` for an example of that JavaScript needed to interact with
+the server.
