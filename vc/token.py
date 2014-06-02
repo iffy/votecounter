@@ -2,10 +2,10 @@
 import uuid
 from twisted.internet import defer, reactor
 
+from vc.error import NoTokensLeft, InvalidToken
 
-class Error(Exception): pass
-class InvalidToken(Error): pass
-class NoTokensLeft(Error): pass
+
+
 
 
 NOTHING = object()

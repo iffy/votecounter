@@ -3,6 +3,7 @@ from twisted.internet import reactor, defer
 import os
 
 
+from vc.error import NotAnOption
 from vc.sql import SQLVoteStore
 
 
@@ -38,6 +39,15 @@ class SQLVoteStoreTest(TestCase):
         """
         store = yield self.getStore(options=['foo'])
         yield store.vote('foo', '1.2.3.4')
+
+
+    @defer.inlineCallbacks
+    def test_vote_options(self):
+        """
+        You can only vote for whitelisted options.
+        """
+        store = yield self.getStore(options=['foo'])
+        yield self.assertFailure(store.vote('bar', '1.2.3.4'), NotAnOption)
 
 
     @defer.inlineCallbacks
