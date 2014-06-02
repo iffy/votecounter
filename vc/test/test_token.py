@@ -158,9 +158,9 @@ class TimedTokenDispenserTest(TestCase):
         d = TimedTokenDispenser(available=2, refresh=10,
             store=MemoryStore(clock),
             clock=clock)
-        yield d.getToken('foo')
+        a = yield d.getToken('foo')
         clock.advance(5)
-        yield d.getToken('foo')
+        a = yield d.getToken('foo')
         yield self.assertFailure(d.getToken('foo'), NoTokensLeft)
         clock.advance(5)
         yield d.getToken('foo')

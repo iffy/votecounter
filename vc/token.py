@@ -101,13 +101,13 @@ class TimedTokenDispenser(object):
             # XXX this exposes a race condition because some other process might
             # cause it to exist between this line and the next yield.
             if not exists:
-                yield self.store.setValue(key_key, 3)
+                yield self.store.setValue(key_key, self.available + 1)
             tokens_left = yield self.store.increment(key_key, -1)
             if tokens_left <= 0:
                 # XXX another race condition between the above yield and this
                 yield self.store.increment(key_key, 1)
                 raise NoTokensLeft('No tokens left')
-            self.clock.callLater(self.refresh, self.store.increment, key_key, 1)
+            a = self.clock.callLater(self.refresh, self._restoreToken, key_key)
 
         # make a new token
         token = str(uuid.uuid4())
@@ -125,4 +125,12 @@ class TimedTokenDispenser(object):
             yield self.store.rmValue(token_key)
         if uses_left < 0:
             raise InvalidToken('Token already used')
+
+
+    @defer.inlineCallbacks
+    def _restoreToken(self, key_key):
+        tokens_left = yield self.store.increment(key_key, 1)
+        if tokens_left == (self.available + 1):
+            yield self.store.rmValue(key_key)
+
 
