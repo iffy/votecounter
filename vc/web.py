@@ -18,13 +18,18 @@ def jsonHandler(func):
     @wraps(func)
     @defer.inlineCallbacks
     def deco(instance, request, *args, **kwargs):
+        callback_fn = request.args.get('callback', [None])[0]
         request.setHeader('Content-Type', 'application/json')
         try:
             result = yield func(instance, request, *args, **kwargs)
         except Exception as e:
-            request.setResponseCode(400)
-            defer.returnValue(json.dumps({'error': str(e)}))
-        defer.returnValue(json.dumps(result))
+            # XXX since jquery is awesome and doesn't handle error codes
+            #request.setResponseCode(400)
+            result = {'error': str(e)}
+        result = json.dumps(result)
+        if callback_fn:
+            result = '%s(%s)' % (callback_fn, result)
+        defer.returnValue(result)
     return deco
 
 

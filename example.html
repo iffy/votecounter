@@ -1,0 +1,169 @@
+<!doctype html>
+<html>
+  <head>Voting Example</head>
+  <body>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+
+    <div id="results">Results</div>
+
+    <form id="captchaform">    
+      <div id="captchadiv"></div>
+    </form>
+
+
+    <div>
+      <button class="vote" data-label="Apple" data-option="round1-apple">Vote Apple</button>
+      <button class="vote" data-label="Banana" data-option="round1-banana">Vote Banana</button>
+    </div>
+
+    <div>
+      <button class="vote" data-label="Cow" data-option="round1-cow">Vote Cow</button>
+      <button class="vote" data-label="Dog" data-option="round1-dog">Vote Dog</button>
+    </div>
+
+
+
+    <script type="text/javascript" src="http://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
+    <script type="text/javascript">
+      $(function() {
+        var RECAPTCHA_PUBLIC_KEY = '6Lerk_QSAAAAALZerbTOKIFJZz1wTNoKMvw1xOE9',
+            VOTING_ENDPOINT = 'http://127.0.0.1:9033';
+        var voting_token = null;
+
+        //-------------------------------------------------------------------
+        // Get a voting token, perhaps performing a CAPTCHA if needed
+        //-------------------------------------------------------------------
+        function getVotingToken(captcha_challenge, captcha_response) {
+          var d = $.Deferred();
+          if (voting_token === null) {
+            // Request a voting token
+            var data = {};
+            if (captcha_challenge !== undefined) {
+              data.recaptcha_challenge_field = captcha_challenge;
+              data.recaptcha_response_field = captcha_response;
+            }
+            $.ajax({
+                url: VOTING_ENDPOINT + '/token',
+                jsonp: 'callback',
+                dataType: 'jsonp',
+                data: data,
+                success: function(response) {
+                  if (response.error) {
+                    // Failed to get a token; try with a CAPTCHA
+                    getCaptchaData()
+                      .then(function(captcha_data) {
+                        return getVotingToken(captcha_data.challenge, captcha_data.response);
+                      })
+                      .then(function(token) {
+                        // Success w/ CAPTCHA
+                        voting_token = token;
+                        d.resolve(voting_token);
+                      });
+                  } else {
+                    // Success
+                    voting_token = response.token;
+                    d.resolve(response.token);
+                  }
+                }
+            });
+          } else {
+            // Reuse a previously requested voting token
+            d.resolve(voting_token);
+          }
+          return d.promise();
+        }
+
+        //-------------------------------------------------------------------
+        // Get a challenge/response CAPTCHA pair
+        //-------------------------------------------------------------------
+        function getCaptchaData() {
+          var d = $.Deferred();
+          Recaptcha.create(RECAPTCHA_PUBLIC_KEY, 'captchadiv', {
+            tabindex: 1,
+            theme: "clean",
+            callback: Recaptcha.focus_response_field
+          });
+          $('#captchaform').on('submit', function(ev) {
+            ev.preventDefault();
+            var data = {
+              challenge: Recaptcha.get_challenge(),
+              response: Recaptcha.get_response()
+            };
+            d.resolve(data);
+            Recaptcha.destroy();
+          });
+          return d.promise();
+        }
+
+        //-------------------------------------------------------------------
+        // Use a voting token to cast a vote
+        //-------------------------------------------------------------------
+        function castVote(voting_token, option) {
+          var d = $.Deferred();
+          $.ajax({
+            url: VOTING_ENDPOINT + '/vote',
+            jsonp: 'callback',
+            dataType: 'jsonp',
+            data: {
+              option: option,
+              token: voting_token
+            },
+            success: function(response) {
+              if (response.error) {
+                // Voting failed
+                d.resolve(response);
+              } else {
+                // Vote recorded successfully
+                d.resolve(response);
+              }
+            }
+          });
+          return d.promise();
+        }
+
+        //--------------------------------------------------------------------
+        // Get results
+        //--------------------------------------------------------------------
+        function currentResults() {
+          var d = $.Deferred();
+          $.ajax({
+            url: VOTING_ENDPOINT + '/results',
+            jsonp: 'callback',
+            dataType: 'jsonp',
+            success: function(response) {
+              if (response.error) {
+                // Error getting results
+                console.log('Error getting results')
+              } else {
+                d.resolve(response);
+              }
+            }
+          });
+          return d.promise();
+        }
+
+        $('button.vote').on('click', function(ev) {
+          // XXX you could put code in here to prevent double-voting client-side
+          // It would stop most people, but not hackers.
+          var elem = $(ev.target);
+          var option = elem.attr('data-option');
+          var label = elem.attr('data-label');
+          getVotingToken()
+          .then(function(voting_token) {
+            return castVote(voting_token, option);
+          })
+          .then(function() {
+            elem.parent().html('Voted for ' + label);
+            return currentResults();
+          })
+          .then(function(results) {
+            console.log('results', results);
+            $('#results').text('' + results);
+          })
+        });
+      })
+    </script>
+
+  </body>
+</html>
+

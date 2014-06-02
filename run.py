@@ -24,8 +24,14 @@ def start(reactor):
     if captcha_private is None:
         raise Exception("You must provide a CAPTCHA_PRIVATE_KEY")
 
+    options = os.environ.get('VOTING_OPTIONS', '').split()
+    if not options:
+        raise Exception("You must provide a space-separated list of VOTING_OPTIONS")
+
+    port = int(os.environ.get('PORT', 9003))
+
     engine = create_engine(url, reactor=reactor, strategy=TWISTED_STRATEGY)
-    store = SQLVoteStore(engine, ['foo', 'bar', 'baz'])
+    store = SQLVoteStore(engine, options)
     yield store.upgradeSchema()
 
     captcha_verifier = RecaptchaVerifier(captcha_private)
@@ -33,13 +39,14 @@ def start(reactor):
     dispenser = TimedTokenDispenser(
         available=4,
         refresh=60,
+        # Set this to the total number of votes that can be cast.
         use_limit=4,
         expiration=240,
         store=MemoryStore(reactor),
     )
     app = VoteCounter(store, dispenser, captcha_verifier)
     site = Site(app.app.resource())
-    reactor.listenTCP(9003, site)
+    reactor.listenTCP(port, site)
     yield defer.Deferred()
 
 
