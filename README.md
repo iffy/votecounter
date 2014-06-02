@@ -21,10 +21,22 @@ voting by machines.
 
     heroku config:set CAPTCHA_PRIVATE_KEY="put yours here"
 
-7. Make a database
+7. Choose the things people are allowed to vote on:
+
+    heroku config:set VOTING_OPTIONS="round1-apple round1-banana round1-cow round1-dog"
+
+8. Make a database
 
     heroku addons:add heroku-postgresql:dev
 
-8. Run the app
+9. Add your SSH key:
+
+    heroku keys:add
+
+10. Run the app
 
     git push heroku master
+
+11. See it (this will be a 404, but you can go to `/results`)
+
+    heroku apps:open

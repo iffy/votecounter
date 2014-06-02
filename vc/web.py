@@ -1,4 +1,5 @@
 from twisted.internet import defer
+from twisted.web.static import File
 import treq
 from klein import Klein
 
@@ -38,10 +39,17 @@ class VoteCounter(object):
     app = Klein()
 
 
-    def __init__(self, vote_store, token_dispenser, captcha_verifier):
+    def __init__(self, vote_store, token_dispenser, captcha_verifier,
+            index_file):
         self.vote_store = vote_store
         self.token_dispenser = token_dispenser
         self.captcha_verifier = captcha_verifier
+        self.index_file = index_file
+
+
+    @app.route('/')
+    def index(self, request):
+        return File(self.index_file)
 
 
     @app.route('/results')

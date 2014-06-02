@@ -158,7 +158,7 @@
           })
           .then(function(results) {
             console.log('results', results);
-            $('#results').text('' + results);
+            $('#results').text('' + JSON.stringify(results));
           })
         });
       })

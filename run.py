@@ -44,7 +44,7 @@ def start(reactor):
         expiration=240,
         store=MemoryStore(reactor),
     )
-    app = VoteCounter(store, dispenser, captcha_verifier)
+    app = VoteCounter(store, dispenser, captcha_verifier, 'example.html')
     site = Site(app.app.resource())
     reactor.listenTCP(port, site)
     yield defer.Deferred()
