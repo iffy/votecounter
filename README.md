@@ -7,6 +7,9 @@ voting by machines.
 
 1. Clone this repo.
 
+        git clone https://github.com/iffy/votecounter.git
+        cd votecounter
+
 2. Sign up for reCAPTCHA here: https://www.google.com/recaptcha/admin
 
 3. Sign up for Heroku here: http://www.heroku.com.  It's free until you want it to not be free.
