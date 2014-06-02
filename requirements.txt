@@ -1,0 +1,5 @@
+Twisted==13.1.0
+Werkzeug==0.9.4
+klein==0.2.3
+zope.interface==4.1.1
+git+git://github.com/alex/alchimia.git@c854181b963e4db6d71b5029f6f4cc67d93306e5#egg=alchimia==0.4
